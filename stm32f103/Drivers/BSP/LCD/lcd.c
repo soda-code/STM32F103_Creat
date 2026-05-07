@@ -434,14 +434,6 @@ void lcd_display_dir(uint8_t dir)
             lcddev.width = 480;
             lcddev.height = 800;
         }
-        else if (lcddev.id == 0X1963)
-        {
-            lcddev.wramcmd = 0X2C;  /* 设置写入GRAM的指令 */
-            lcddev.setxcmd = 0X2B;  /* 设置写X坐标指令 */
-            lcddev.setycmd = 0X2A;  /* 设置写Y坐标指令 */
-            lcddev.width = 480;     /* 设置宽度480 */
-            lcddev.height = 800;    /* 设置高度800 */
-        }
         else   /* 其他IC, 包括: 9341 / 5310 / 7789 / 7796 / 9806 等IC */
         {
             lcddev.wramcmd = 0X2C;
@@ -455,11 +447,6 @@ void lcd_display_dir(uint8_t dir)
             lcddev.height = 480;
         }
 
-        if (lcddev.id == 0X9806)    /* 如果是9806 则表示是 480*800 分辨率 */
-        {
-            lcddev.width = 480;
-            lcddev.height = 800;
-        }
     }
     else                /* 横屏 */
     {
@@ -473,14 +460,6 @@ void lcd_display_dir(uint8_t dir)
             lcddev.setycmd = 0X2B00;
             lcddev.width = 800;
             lcddev.height = 480;
-        }
-        else if (lcddev.id == 0X1963 || lcddev.id == 0x9806)
-        {
-            lcddev.wramcmd = 0X2C;  /* 设置写入GRAM的指令 */
-            lcddev.setxcmd = 0X2A;  /* 设置写X坐标指令 */
-            lcddev.setycmd = 0X2B;  /* 设置写Y坐标指令 */
-            lcddev.width = 800;     /* 设置宽度800 */
-            lcddev.height = 480;    /* 设置高度480 */
         }
         else   /* 其他IC, 包括: 9341 / 5310 / 7789 / 7796 等IC */
         {
@@ -513,22 +492,7 @@ void lcd_set_window(uint16_t sx, uint16_t sy, uint16_t width, uint16_t height)
     twidth = sx + width - 1;
     theight = sy + height - 1;
 
-    if (lcddev.id == 0X1963 && lcddev.dir != 1)    /* 1963竖屏特殊处理 */
-    {
-        sx = lcddev.width - width - sx;
-        height = sy + height - 1;
-        lcd_wr_regno(lcddev.setxcmd);
-        lcd_wr_data(sx >> 8);
-        lcd_wr_data(sx & 0XFF);
-        lcd_wr_data((sx + width - 1) >> 8);
-        lcd_wr_data((sx + width - 1) & 0XFF);
-        lcd_wr_regno(lcddev.setycmd);
-        lcd_wr_data(sy >> 8);
-        lcd_wr_data(sy & 0XFF);
-        lcd_wr_data(height >> 8);
-        lcd_wr_data(height & 0XFF);
-    }
-    else if (lcddev.id == 0X5510)
+    if (lcddev.id == 0X5510)
     {
         lcd_wr_regno(lcddev.setxcmd);
         lcd_wr_data(sx >> 8);
@@ -735,7 +699,6 @@ void lcd_init(void)
                             lcddev.id <<= 8;
                             lcddev.id |= lcd_rd_data(); /* 读回0x61 */
 
-                            if (lcddev.id == 0x5761) lcddev.id = 0x1963; /* SSD1963读回的ID是5761H,为方便区分,我们强制设置为1963 */
                         }
                     }
                 }
@@ -749,11 +712,7 @@ void lcd_init(void)
      */
     printf("LCD ID:%x\r\n", lcddev.id); /* 打印LCD ID */
 
-    if (lcddev.id == 0X7789)
-    {
-        lcd_ex_st7789_reginit();    /* 执行ST7789初始化 */
-    }
-    else if (lcddev.id == 0X9341)
+    if (lcddev.id == 0X9341)
     {
         lcd_ex_ili9341_reginit();   /* 执行ILI9341初始化 */
     }
@@ -764,19 +723,6 @@ void lcd_init(void)
     else if (lcddev.id == 0x7796)
     {
         lcd_ex_st7796_reginit();    /* 执行ST7796初始化 */
-    }
-    else if (lcddev.id == 0x5510)
-    {
-        lcd_ex_nt35510_reginit();   /* 执行NT35510初始化 */
-    }
-    else if (lcddev.id == 0x9806)
-    {
-        lcd_ex_ili9806_reginit();   /* 执行ILI9806初始化 */
-    }
-    else if (lcddev.id == 0x1963)
-    {
-        lcd_ex_ssd1963_reginit();   /* 执行SSD1963初始化 */
-        lcd_ssd_backlight_set(100); /* 背光设置为最亮 */
     }
 
     lcd_display_dir(0); /* 默认为竖屏 */
@@ -1044,10 +990,6 @@ void lcd_show_char(uint16_t x, uint16_t y, char chr, uint8_t size, uint8_t mode,
 
         case 24:
             pfont = (uint8_t *)asc2_2412[chr];  /* 调用2412字体 */
-            break;
-
-        case 32:
-            pfont = (uint8_t *)asc2_3216[chr];  /* 调用3216字体 */
             break;
 
         default:

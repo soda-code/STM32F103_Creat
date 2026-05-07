@@ -14,6 +14,8 @@
 #include "./SYSTEM/usart/usart.h"
 #include "./BSP/LCD/lcd.h"
 #include "./BSP/LED/led.h"
-
+#include "./BSP/DMA/dma.h"
+#include "./BSP/LSENS/lsens.h"
+#include "./BSP/SDIO/sdio_sdcard.h"
 #endif
 

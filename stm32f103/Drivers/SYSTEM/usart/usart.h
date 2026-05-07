@@ -38,6 +38,7 @@ extern uint8_t g_rx_buffer[RXBUFFERSIZE];       /* HAL库USART接收Buffer */
 
 void usart_init(uint32_t bound);                /* 串口初始化函数 */
 uint8_t *return_usart_receive_callback(void);
+void my_printf(const char *format, ...);              /* 自定义printf函数, 通过DMA串口发送格式化字符串 */
 #endif
 
 
