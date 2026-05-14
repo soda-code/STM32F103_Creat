@@ -17,6 +17,8 @@ int main(void)
     led_init();                         /* 初始化LED */
     lcd_init();                         /* 初始化LCD */
     key_init();                         /* 初始化按键 */
+    beep_init();                        /* 初始化蜂鸣器 */
+    rtc_init();                         /* 初始化RTC */
     Lsens_init();                       /* 初始化光敏传感器 */
     exfuns_init();                      /* 为exfuns申请内存 */
     my_mem_init(SRAMIN);                /* 初始化内部SRAM内存池 */

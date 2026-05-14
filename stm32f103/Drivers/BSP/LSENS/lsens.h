@@ -31,7 +31,7 @@
 
 void    Lsens_init(void);          /* 初始化光敏传感器 */
 uint16_t Lsens_get_val(void);      /* 读取光敏传感器的值 */
-double Lsens_get_lux(void);        /* 计算光强 Lux */
+float Lsens_get_lux(void);        /* 计算光强 Lux */
 #endif 
 
 

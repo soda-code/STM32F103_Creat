@@ -11,5 +11,7 @@
 #include "./SYSTEM/sys/sys.h"
 
 void gui_run(void);
-
+void LCD_Curve_Init(void);
+void LCD_Curve_AddPoint(int16_t value);
+void LCD_Curve_AddPoint_Fast(int16_t value);
 #endif

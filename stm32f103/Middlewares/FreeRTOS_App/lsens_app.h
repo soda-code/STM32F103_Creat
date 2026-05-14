@@ -14,6 +14,7 @@ typedef enum
 {
     LSENS_OFF = 0,
     LSENS_ON,
+    LSENS_BUSY,
     LSENS_ERROR,
     LSENS_GET,
     LSENS_MAX,

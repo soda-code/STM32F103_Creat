@@ -690,16 +690,6 @@ void lcd_init(void)
                         lcddev.id = lcd_rd_data();  /* 读回0X98 */
                         lcddev.id <<= 8;
                         lcddev.id |= lcd_rd_data(); /* 读回0X06 */
-                        
-                        if (lcddev.id != 0x9806)    /* 也不是ILI9806,尝试看看是不是SSD1963 */
-                        {
-                            lcd_wr_regno(0xA1);
-                            lcddev.id = lcd_rd_data();
-                            lcddev.id = lcd_rd_data();  /* 读回0x57 */
-                            lcddev.id <<= 8;
-                            lcddev.id |= lcd_rd_data(); /* 读回0x61 */
-
-                        }
                     }
                 }
             }
@@ -710,7 +700,7 @@ void lcd_init(void)
      * 里面(卡死在f_putc函数), 所以, 必须初始化串口1, 或者屏蔽掉下面
      * 这行 printf 语句 !!!!!!!
      */
-    printf("LCD ID:%x\r\n", lcddev.id); /* 打印LCD ID */
+    my_printf("LCD ID:%x\r\n", lcddev.id); /* 打印LCD ID */
 
     if (lcddev.id == 0X9341)
     {
@@ -725,7 +715,7 @@ void lcd_init(void)
         lcd_ex_st7796_reginit();    /* 执行ST7796初始化 */
     }
 
-    lcd_display_dir(0); /* 默认为竖屏 */
+    lcd_display_dir(1); /* 默认为竖屏 */
     LCD_BL(1);          /* 点亮背光 */
     lcd_clear(WHITE);
 }

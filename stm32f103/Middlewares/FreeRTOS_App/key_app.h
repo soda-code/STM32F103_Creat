@@ -1,23 +1,22 @@
 //******************************************************************************
-//  File Name          : led_app.h
-//  Description        : This file provides code for the led_app.c file
+//  File Name          : key_app.h
+//  Description        : This file provides code for the key_app.c file
 //  Author             : MCD Application Team
 //  Date               : 01-July-2016
 //******************************************************************************
 
-#ifndef __LED_APP_H
-#define __LED_APP_H
+#ifndef __KEY_APP_H
+#define __KEY_APP_H
 
 #include "./SYSTEM/sys/sys.h"
 
 typedef enum
 {
-  LED_OFF = 0,
-  LED_ON,
-  LED_TOGGLE,
-  LED_MAX
-} LED_StateTypeDef;
+  KEY_OFF = 0,
+  KEY_ON,
+  KEY_MAX
+} KEY_StateTypeDef;
 
-void led_get_status(uint8_t *state);
-void led_run(void);
+void key_run(void);
+
 #endif

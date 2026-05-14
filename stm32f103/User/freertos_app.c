@@ -2,13 +2,15 @@
 #include "./BSP/LCD/lcd.h"
 #include "./BSP/KEY/key.h"
 /*FreeRTOS*********************************************************************************************/
-#include "FreeRTOS.h"
-#include "task.h"
+#include "freertos_user_app.h"
+#include "gui_app.h"
 #include "led_app.h"
 #include "pc_cmd_app.h"
 #include "lsens_app.h"
 #include "debug_app.h"
 #include "run_log_app.h"
+#include "key_app.h"
+#include "date_read_app.h"
 /******************************************************************************************************/
 /*FreeRTOS配置*/
 
@@ -28,6 +30,11 @@ void start_task(void *pvParameters);        /* 任务函数 */
 TaskHandle_t            LED_Task_Handler;  /* 任务句柄 */
 void led_task(void *pvParameters);             /* 任务函数 */
 
+//* KEY_TASK 任务 配置
+#define KEY_PRIO         5                 /* 任务优先级 */
+#define KEY_STK_SIZE     128                 /* 任务堆栈大小 */
+TaskHandle_t            Key_Task_Handler;  /* 任务句柄 */
+void key_task(void *pvParameters);             /* 任务函数 */
 
 //* LSENS_CMD_TASK 任务 配置
 #define RUN_LOG_PRIO         5                 /* 任务优先级 */
@@ -60,7 +67,8 @@ TaskHandle_t            Debug_Task_Handler;  /* 任务句柄 */
 void debug_task(void *pvParameters);             /* 任务函数 */
 
 
-
+TimerHandle_t RtcTimer;
+void ReadDateCallback(TimerHandle_t xTimer);
 /******************************************************************************************************/
 
 /**
@@ -94,6 +102,12 @@ void start_task(void *pvParameters)
                 (void*          )NULL,                  /* 传入给任务函数的参数 */
                 (UBaseType_t    )LED_TASK_PRIO,            /* 任务优先级 */
                 (TaskHandle_t*  )&LED_Task_Handler);   /* 任务句柄 */
+    xTaskCreate((TaskFunction_t )key_task,                 /* 任务函数 */
+                (const char*    )"key_task",               /* 任务名称 */
+                (uint16_t       )KEY_STK_SIZE,        /* 任务堆栈大小 */
+                (void*          )NULL,                  /* 传入给任务函数的参数 */
+                (UBaseType_t    )KEY_PRIO,            /* 任务优先级 */
+                (TaskHandle_t*  )&Key_Task_Handler);   /* 任务句柄 */
    xTaskCreate((TaskFunction_t )run_log_task,                 /* 任务函数 */
                 (const char*    )"run_log_task",               /* 任务名称 */
                 (uint16_t       )RUN_LOG_STK_SIZE,        /* 任务堆栈大小 */
@@ -128,10 +142,30 @@ void start_task(void *pvParameters)
                 (void*          )NULL,                  /* 传入给任务函数的参数 */
                 (UBaseType_t    )DEBUG_PRIO,            /* 任务优先级 */
                 (TaskHandle_t*  )&Debug_Task_Handler);   /* 任务句柄 */
+                
+    RtcTimer = xTimerCreate("RTC",pdMS_TO_TICKS(1000),pdTRUE,NULL,ReadDateCallback);
+		if( RtcTimer != NULL ) 
+    {
+        // 启动定时器，等待最大 100ms 以确保命令发送成功
+        if( xTimerStart( RtcTimer, pdMS_TO_TICKS( 1000 ) ) != pdPASS ) 
+        {
+        }
+    }
     vTaskDelete(StartTask_Handler); /* 删除开始任务 */
     taskEXIT_CRITICAL();            /* 退出临界区 */
 }
 
+//***************************************************************************************
+// @function:       ReadDateCallback
+// @description:    定时器回调函数，读取日期
+// @parameters:     xTimer : 定时器句柄
+// @return:         无
+//***************************************************************************************
+
+void ReadDateCallback(TimerHandle_t xTimer)
+{
+    date_read_run(); /* 调用获取时间函数，更新时间 */
+}
 /**
  * @brief       LED_TASK
  * @param       pvParameters : 传入参数(未用到)
@@ -142,6 +176,20 @@ void led_task(void *pvParameters)
     while (1)
     {
         led_run(); /* 运行LED任务，处理LED相关逻辑 */
+        vTaskDelay(1);
+    }
+}
+
+/**
+ * @brief       key_TASK
+ * @param       pvParameters : 传入参数(未用到)
+ * @retval      无
+ */
+void key_task(void *pvParameters)
+{
+    while (1)
+    {
+        key_run(); /* 运行按键任务，处理按键相关逻辑 */
         vTaskDelay(500);
     }
 }
@@ -179,12 +227,26 @@ void gui_task(void *pvParameters)
  * @param       pvParameters : 传入参数(未用到)
  * @retval      无
  */
+
+//********************************创建队列
+#define LSENS_data_len 100  
+#define LSENS_data_size sizeof(float)
+QueueHandle_t Lsens_Data_Queue;  /* 队列句柄 */
+
+
 void lsens_cmd_task(void *pvParameters)
 {
+    /* 创建队列 */
+    lsens_set_state(LSENS_ON); /* 设置状态为ON，开始获取数据 */
+    Lsens_Data_Queue = xQueueCreate(LSENS_data_len, LSENS_data_size);
+    if (Lsens_Data_Queue == NULL)
+    {
+        my_printf("Failed to create Lsens_Data_Queue\r\n");
+    }
     while (1)
     {
         lsens_run(); /* 运行LSENS命令任务，处理来自USART接口的LSENS相关命令 */
-        vTaskDelay(500);
+        vTaskDelay(100);
     }
 }
 /**
