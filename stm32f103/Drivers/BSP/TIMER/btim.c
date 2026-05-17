@@ -1,6 +1,6 @@
 #include "./BSP/LED/led.h"
 #include "./BSP/TIMER/btim.h"
-
+#include "./BSP/RADAR/radar.h"
 TIM_HandleTypeDef g_timx_handle;      /* 定时器x句柄 */
 
 /**
@@ -49,10 +49,29 @@ void BTIM_TIMX_INT_IRQHandler(void)
 * @param        htim:定时器句柄指针
  * @retval      无
  */
+extern uint8_t radar_state ; /* 雷达状态变量 */
+extern uint16_t radar_timer_count ; /* 雷达定时器计数变量 */
+uint8_t lock =0;
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
+
     if (htim == (&g_timx_handle))
     {
+        if(radar_state )
+        {
+            if((RADAR_IN == GPIO_PIN_SET)&&(lock==0)) /* 如果雷达输入引脚为高电平且锁定变量为0 */
+            {
+                lock = 1; /* 锁定变量置1，表示正在测距 */
+            }
+            else if((RADAR_IN == GPIO_PIN_RESET)&&(lock==1)) /* 如果雷达输入引脚为低电平且锁定变量为1 */
+            {
+                lock = 0; /* 锁定变量清零，表示测距完成 */
+            }
+            if(lock == 1) /* 如果锁定变量为1，表示正在测距 */
+            {
+                radar_timer_count++; /* 雷达定时器计数变量加1 */
+            }
+		}
         //LED1_TOGGLE();
     }
 }

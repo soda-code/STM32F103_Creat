@@ -589,6 +589,11 @@
               <FileType>1</FileType>
               <FilePath>..\..\Drivers\BSP\SDIO\sdio_sdcard.c</FilePath>
             </File>
+            <File>
+              <FileName>radar.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\Drivers\BSP\RADAR\radar.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -728,6 +733,16 @@
               <FileName>date_read_app.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\Middlewares\FreeRTOS_App\date_read_app.c</FilePath>
+            </File>
+            <File>
+              <FileName>waring_sound_app.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\Middlewares\FreeRTOS_App\waring_sound_app.c</FilePath>
+            </File>
+            <File>
+              <FileName>radar_app.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\Middlewares\FreeRTOS_App\radar_app.c</FilePath>
             </File>
           </Files>
         </Group>

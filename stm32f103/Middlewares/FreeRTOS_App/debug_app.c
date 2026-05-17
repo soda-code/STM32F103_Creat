@@ -47,7 +47,7 @@ void debug_run(void)
             break;
         case DEBUG_ON:
         	mem_usage = my_mem_perused(SRAMIN); /* 获取内存使用率 */
-            my_printf("DEBUG: Tick Count = %lu, Memory Usage = %.2f%%\r\n", vTasktick, mem_usage / 10.0f); /* 输出当前tick数和内存使用率 */
+           // my_printf("DEBUG: Tick Count = %lu, Memory Usage = %.2f%%\r\n", vTasktick, mem_usage / 10.0f); /* 输出当前tick数和内存使用率 */
             break;
         default:
             break;

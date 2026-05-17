@@ -1,6 +1,7 @@
 #include "freertos_app.h"
 #include "./BSP/LCD/lcd.h"
 #include "./BSP/KEY/key.h"
+#include "./BSP/RADAR/radar.h"
 /*FreeRTOS*********************************************************************************************/
 #include "freertos_user_app.h"
 #include "gui_app.h"
@@ -11,6 +12,8 @@
 #include "run_log_app.h"
 #include "key_app.h"
 #include "date_read_app.h"
+#include "waring_sound_app.h"
+#include "radar_app.h"
 /******************************************************************************************************/
 /*FreeRTOS配置*/
 
@@ -22,6 +25,20 @@
 TaskHandle_t            StartTask_Handler;  /* 任务句柄 */
 void start_task(void *pvParameters);        /* 任务函数 */
 
+
+//* GUI_TASK 任务 配置
+#define GUI_PRIO         2                      /* 任务优先级 */
+#define GUI_STK_SIZE     512                   /* 任务堆栈大小 */
+TaskHandle_t            Gui_Task_Handler;       /* 任务句柄 */
+void gui_task(void *pvParameters);              /* 任务函数 */
+
+
+//* DEBUG_TASK 任务 配置
+#define DEBUG_PRIO      2                       /* 任务优先级 */
+#define DEBUG_STK_SIZE  128                     /* 任务堆栈大小 */
+TaskHandle_t            Debug_Task_Handler;     /* 任务句柄 */
+void debug_task(void *pvParameters);           
+
 /* LED_TASK 任务 配置
  * 包括: 任务句柄 任务优先级 堆栈大小 创建任务
  */
@@ -30,41 +47,42 @@ void start_task(void *pvParameters);        /* 任务函数 */
 TaskHandle_t            LED_Task_Handler;  /* 任务句柄 */
 void led_task(void *pvParameters);             /* 任务函数 */
 
-//* KEY_TASK 任务 配置
-#define KEY_PRIO         5                 /* 任务优先级 */
-#define KEY_STK_SIZE     128                 /* 任务堆栈大小 */
-TaskHandle_t            Key_Task_Handler;  /* 任务句柄 */
-void key_task(void *pvParameters);             /* 任务函数 */
-
 //* LSENS_CMD_TASK 任务 配置
-#define RUN_LOG_PRIO         5                 /* 任务优先级 */
-#define RUN_LOG_STK_SIZE     1024                 /* 任务堆栈大小 */
-TaskHandle_t            Run_Log_Task_Handler;  /* 任务句柄 */
-void run_log_task(void *pvParameters);             /* 任务函数 */
-
-//* LSENS_CMD_TASK 任务 配置
-#define LSENS_CMD_PRIO         4                 /* 任务优先级 */
-#define LSENS_CMD_STK_SIZE     128                 /* 任务堆栈大小 */
-TaskHandle_t            LSENS_Cmd_Task_Handler;  /* 任务句柄 */
-void lsens_cmd_task(void *pvParameters);             /* 任务函数 */
-
+#define LSENS_CMD_PRIO         4                    /* 任务优先级 */
+#define LSENS_CMD_STK_SIZE     128                  /* 任务堆栈大小 */
+TaskHandle_t            LSENS_Cmd_Task_Handler;     /* 任务句柄 */
+void lsens_cmd_task(void *pvParameters);            /* 任务函数 */
 //* PC_CMD_TASK 任务 配置
-#define PC_CMD_PRIO         4                 /* 任务优先级 */
-#define PC_CMD_STK_SIZE     128                 /* 任务堆栈大小 */
-TaskHandle_t            Pc_Cmd_Task_Handler;  /* 任务句柄 */
-void pc_cmd_task(void *pvParameters);             /* 任务函数 */
+#define PC_CMD_PRIO         4                       /* 任务优先级 */
+#define PC_CMD_STK_SIZE     128                     /* 任务堆栈大小 */
+TaskHandle_t            Pc_Cmd_Task_Handler;        /* 任务句柄 */
+void pc_cmd_task(void *pvParameters);               /* 任务函数 */
 
-//* GUI_TASK 任务 配置
-#define GUI_PRIO         1                 /* 任务优先级 */
-#define GUI_STK_SIZE     1024                 /* 任务堆栈大小 */
-TaskHandle_t            Gui_Task_Handler;  /* 任务句柄 */
-void gui_task(void *pvParameters);             /* 任务函数 */
+//* KEY_TASK 任务 配置
+#define KEY_PRIO         5                      /* 任务优先级 */
+#define KEY_STK_SIZE     128                    /* 任务堆栈大小 */
+TaskHandle_t            Key_Task_Handler;       /* 任务句柄 */
+void key_task(void *pvParameters);              /* 任务函数 */
 
-//* DEBUG_TASK 任务 配置
-#define DEBUG_PRIO      2                   /* 任务优先级 */
-#define DEBUG_STK_SIZE  128                 /* 任务堆栈大小 */
-TaskHandle_t            Debug_Task_Handler;  /* 任务句柄 */
-void debug_task(void *pvParameters);             /* 任务函数 */
+//* WARING_SOUND_TASK 任务 配置
+#define WARING_SOUND_PRIO         5                     /* 任务优先级 */
+#define WARING_SOUND_STK_SIZE     256                  /* 任务堆栈大小 */
+TaskHandle_t            Waring_Sound_Task_Handler;      /* 任务句柄 */
+void waring_sound_task(void *pvParameters);             /* 任务函数 */
+
+//* LSENS_CMD_TASK 任务 配置
+#define RUN_LOG_PRIO         6                      /* 任务优先级 */
+#define RUN_LOG_STK_SIZE     1024                   /* 任务堆栈大小 */
+TaskHandle_t            Run_Log_Task_Handler;       /* 任务句柄 */
+void run_log_task(void *pvParameters);              /* 任务函数 */
+
+//* RADAR_APP 任务 配置
+#define RADAR_APP_PRIO         7                     /* 任务优先级 */
+#define RADAR_APP_STK_SIZE     512                   /* 任务堆栈大小 */
+TaskHandle_t            Radar_App_Task_Handler;      /* 任务句柄 */
+void radar_app_task(void *pvParameters);             /* 任务函数 */
+
+  /* 任务函数 */
 
 
 TimerHandle_t RtcTimer;
@@ -128,6 +146,13 @@ void start_task(void *pvParameters)
                 (void*          )NULL,                  /* 传入给任务函数的参数 */
                 (UBaseType_t    )PC_CMD_PRIO,            /* 任务优先级 */
                 (TaskHandle_t*  )&Pc_Cmd_Task_Handler);   /* 任务句柄 */
+                    /* 创建任务4 */
+    xTaskCreate((TaskFunction_t )waring_sound_task,                 /* 任务函数 */
+                (const char*    )"waring_sound_task",               /* 任务名称 */
+                (uint16_t       )WARING_SOUND_STK_SIZE,        /* 任务堆栈大小 */
+                (void*          )NULL,                  /* 传入给任务函数的参数 */
+                (UBaseType_t    )WARING_SOUND_PRIO,            /* 任务优先级 */
+                (TaskHandle_t*  )&Waring_Sound_Task_Handler);   /* 任务句柄 */
     /* 创建任务4 */
     xTaskCreate((TaskFunction_t )gui_task,                 /* 任务函数 */
                 (const char*    )"gui_task",               /* 任务名称 */
@@ -135,6 +160,13 @@ void start_task(void *pvParameters)
                 (void*          )NULL,                  /* 传入给任务函数的参数 */
                 (UBaseType_t    )GUI_PRIO,            /* 任务优先级 */
                 (TaskHandle_t*  )&Gui_Task_Handler);   /* 任务句柄 */
+
+    xTaskCreate((TaskFunction_t )radar_app_task,                 /* 任务函数 */
+                (const char*    )"radar_app_task",               /* 任务名称 */
+                (uint16_t       )RADAR_APP_STK_SIZE,        /* 任务堆栈大小 */
+                (void*          )NULL,                  /* 传入给任务函数的参数 */
+                (UBaseType_t    )RADAR_APP_PRIO,            /* 任务优先级 */
+                (TaskHandle_t*  )&Radar_App_Task_Handler);   /* 任务句柄 */
     /* 创建任务3 */
     xTaskCreate((TaskFunction_t )debug_task,                 /* 任务函数 */
                 (const char*    )"debug_task",               /* 任务名称 */
@@ -213,15 +245,42 @@ void run_log_task(void *pvParameters)
  * @param       pvParameters : 传入参数(未用到)
  * @retval      无
  */
+
 void gui_task(void *pvParameters)
 {
     while (1)
     {
-        gui_run(); /* 运行GUI任务，处理GUI相关逻辑 */
-        vTaskDelay(500);
+        gui_run(); /* 运行GUI任务，处理相关逻辑 */    
+        vTaskDelay(100);
     }
 }
+/**
+ * @brief       waring_sound_TASK
+ * @param       pvParameters : 传入参数(未用到)
+ * @retval      无
+ */
+void waring_sound_task(void *pvParameters)
+{
+	while(1)
+	{
+      waring_sound_run(); /* 运行警告声音任务，处理相关逻辑 */
+	    vTaskDelay(1);
+	}
+}
 
+/**
+ * @brief       radar_app_task
+ * @param       pvParameters : 传入参数(未用到)
+ * @retval      无
+ */
+void radar_app_task(void *pvParameters)
+{
+	while(1)
+	{
+    radar_app_run(); /* 运行雷达应用任务，处理相关逻辑 */
+    vTaskDelay(20);
+	}
+}
 /**
  * @brief       LSENS_CMD_TASK
  * @param       pvParameters : 传入参数(未用到)
